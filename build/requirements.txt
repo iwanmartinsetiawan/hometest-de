@@ -1,0 +1,7 @@
+requests
+PyMongo
+pandas
+duckdb
+psycopg2
+apache-airflow-providers-mongo
+pytz

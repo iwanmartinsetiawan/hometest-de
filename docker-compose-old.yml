@@ -1,0 +1,61 @@
+
+services:
+  # Airflow service
+  airflow:
+    image: apache/airflow:2.7.2
+    container_name: airflow
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: 'false'
+      AIRFLOW__WEBSERVER__WORKERS: 2
+      AIRFLOW__CORE__AIRFLOW_HOME: /opt/airflow
+    depends_on:
+      - postgres
+      - mongodb
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./airflow/airflow.cfg:/opt/airflow/airflow.cfg
+    user: "${AIRFLOW_UID:-50000}:${AIRFLOW_GID:-50000}"
+    ports:
+      - "38080:8080"
+    command: >
+      bash -c "
+      airflow db upgrade &&
+      airflow users create -u admin -p admin -f Admin -l User -r Admin -e admin@example.com &&
+      airflow webserver &
+      airflow scheduler
+      "
+
+  # PostgreSQL service
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+    # ports:
+    #   - "35432:5432"
+
+  # MongoDB service
+  mongodb:
+    image: mongo:6
+    container_name: mongodb
+    volumes:
+      - ./mongodb/data:/data/db
+      - ./mongodb/init:/docker-entrypoint-initdb.d
+    ports:
+      - "37017:27017"
+
+volumes:
+  airflow_data:
+    driver: local
+  postgres_data:
+    driver: local
+  mongo_data:
+    driver: local

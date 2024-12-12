@@ -1,0 +1,8 @@
+# Ignore other virtual environment names
+venv/
+myenv/
+mongodb/data/
+mysql/data/
+postgresql/data/
+airflow/dags/__pycache__/
+airflow/dags/logs/
